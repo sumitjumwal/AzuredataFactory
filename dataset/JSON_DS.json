@@ -1,0 +1,31 @@
+{
+	"name": "JSON_DS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_JSON_LS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Filepath": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "ADLS_DS"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().Filepath",
+					"type": "Expression"
+				},
+				"fileSystem": "landing"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

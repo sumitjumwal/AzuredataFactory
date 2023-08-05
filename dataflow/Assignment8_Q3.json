@@ -1,0 +1,133 @@
+{
+	"name": "Assignment8_Q3",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SQLCustomer"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ADLS_CSV_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CustomerAddrCSV"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ADLS_CSV_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkTOparquet"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "sortasc"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'Customer',",
+				"     isolationLevel: 'READ_COMMITTED') ~> SQLCustomer",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          AddressID as integer,",
+				"          AddressType as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'landing',",
+				"     fileName: 'CustomerAddress',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> CustomerAddrCSV",
+				"SQLCustomer, CustomerAddrCSV join(SQLCustomer@CustomerID == CustomerAddrCSV@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 filter(SQLCustomer@CustomerID > 100 && SQLCustomer@CustomerID < 30000) ~> filter1",
+				"filter1 sort(desc(SQLCustomer@CustomerID, true)) ~> sortasc",
+				"sortasc select(mapColumn(",
+				"          CustomerID = SQLCustomer@CustomerID,",
+				"          FirstName,",
+				"          MiddleName,",
+				"          LastName,",
+				"          ModifiedDateSQLDS = SQLCustomer@ModifiedDate,",
+				"          AddressID,",
+				"          AddressType,",
+				"          ModifiedDateCSVDS = CustomerAddrCSV@ModifiedDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'landing',",
+				"     folderPath: 'Customer',",
+				"     compressionCodec: 'none',",
+				"     partitionFileNames:['CustomerjoinAddress_parquet'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          FirstName,",
+				"          MiddleName,",
+				"          LastName,",
+				"          ModifiedDateSQLDS,",
+				"          AddressID,",
+				"          AddressType,",
+				"          ModifiedDateCSVDS",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> sinkTOparquet"
+			]
+		}
+	}
+}

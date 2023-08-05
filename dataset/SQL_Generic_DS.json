@@ -1,0 +1,35 @@
+{
+	"name": "SQL_Generic_DS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SQL_Sample_database",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			},
+			"SchemaName": {
+				"type": "string",
+				"defaultValue": "SalesLT"
+			}
+		},
+		"folder": {
+			"name": "SQL Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SchemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

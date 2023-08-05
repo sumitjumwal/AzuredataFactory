@@ -1,0 +1,130 @@
+{
+	"name": "Ingestion_Product_Addres_To_JSON",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get_row_data_product",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select count(*) [Rowcount] from SalesLT.Product",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_Generic_DS",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "Product",
+							"SchemaName": "SalesLT"
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Check_rows_count",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get_row_data_product",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greaterOrEquals(activity('Get_row_data_product').output.firstRow.Rowcount ,10)\r\n\r\n",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy_product",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SQL_Generic_DS",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "Product",
+										"SchemaName": "SalesLT"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "JSON_DS",
+									"type": "DatasetReference",
+									"parameters": {
+										"Filepath": "Product"
+									}
+								}
+							]
+						},
+						{
+							"name": "sub_Ingestion_Product_Addres_To_JSON",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Copy_product",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "sub_Ingestion_Product_Addres_To_JSON",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-07-05T01:55:55Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

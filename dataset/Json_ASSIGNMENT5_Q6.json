@@ -1,0 +1,21 @@
+{
+	"name": "Json_ASSIGNMENT5_Q6",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_JSON_LS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "test2.json",
+				"folderPath": "CSV",
+				"fileSystem": "landing"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

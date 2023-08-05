@@ -1,0 +1,100 @@
+{
+	"name": "Assignment8_Advance",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ADLS_CSV_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CSVSource"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Sinktodb"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SelectOddCustid"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "alterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as short,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'landing',",
+				"     fileName: 'customer',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> CSVSource",
+				"CSVSource filter(notEquals(mod(CustomerID,2),0)) ~> SelectOddCustid",
+				"alterRow1 select(mapColumn(",
+				"          CustomerID,",
+				"          FirstName,",
+				"          EmailAddress",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"SelectOddCustid alterRow(upsertIf(true())) ~> alterRow1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CID as integer,",
+				"          Name as string,",
+				"          mailid as string",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'dummy',",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: true,",
+				"     keys:['CID'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CID = CustomerID,",
+				"          Name = FirstName,",
+				"          mailid = EmailAddress",
+				"     )) ~> Sinktodb"
+			]
+		}
+	}
+}

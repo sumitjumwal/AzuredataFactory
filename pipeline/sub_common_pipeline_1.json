@@ -1,0 +1,72 @@
+{
+	"name": "sub_common_pipeline_1",
+	"properties": {
+		"activities": [
+			{
+				"name": "sub_common_pipeline_1_copy",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SQL_Generic_DS",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "Customer",
+							"SchemaName": "SalesLT"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CSV_DS",
+						"type": "DatasetReference",
+						"parameters": {
+							"FilePath": {
+								"value": "CSV/Customer/@{formatDateTime(utcNow(),'yyyy')}/@{formatDateTime(utcNow(),'MM')}/@{formatDateTime(utcNow(),'dd')}",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-07-06T03:04:10Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

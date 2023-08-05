@@ -1,0 +1,9 @@
+{
+	"name": "practiceADF-sumit",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "5afdaaf4-214c-4458-9a1d-19b7aa380c7c",
+		"tenantId": "2d81c2c8-2fbd-4be6-bb85-2b7bd8d83ba2"
+	}
+}

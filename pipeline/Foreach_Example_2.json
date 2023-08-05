@@ -1,0 +1,118 @@
+{
+	"name": "Foreach_Example_2",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get_row_data_product",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select count(*) [Rowcount] from SalesLT.Customer",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SQL_Generic_DS",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "Customer",
+							"SchemaName": "SalesLT"
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Check_rows_count",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get_row_data_product",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greaterOrEquals(activity('Get_row_data_product').output.firstRow.Rowcount ,100)\n\n",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy_product",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": "if EXISTS (select 1 from sys.objects where name = 'Customer_copy')\nBEGIN\nTRUNCATE TABLE SalesLT.Customer_copy\nEND\n",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SQL_Generic_DS",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "Customer",
+										"SchemaName": "SalesLT"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SQL_Generic_DS",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "customer_copy",
+										"SchemaName": "SalesLT"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-07-06T02:00:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

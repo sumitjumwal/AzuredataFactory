@@ -1,0 +1,90 @@
+{
+	"name": "Foreach_Example2_Assignment7_Q5_Method2",
+	"properties": {
+		"activities": [
+			{
+				"name": "For each table",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray('SELECT * FROM SalesLT.Customer where CustomerID > 100 and CustomerID < 1000' , 'SELECT * FROM SalesLT.Product where ProductID > 100')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "@item()",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SQL_Generic_DS",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@item()",
+											"type": "Expression"
+										},
+										"SchemaName": "SalesLT"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "CSV_DS",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": "foreach"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-07-22T16:41:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,37 @@
+{
+	"name": "Assignment8_Q2",
+	"properties": {
+		"activities": [
+			{
+				"name": "Assignment8_Q2",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Assignment8_Q2",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None",
+					"cacheSinks": {
+						"firstRowOnly": true
+					}
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-07-23T12:46:51Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

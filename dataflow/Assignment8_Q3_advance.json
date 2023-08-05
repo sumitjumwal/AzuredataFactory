@@ -1,0 +1,68 @@
+{
+	"name": "Assignment8_Q3_advance",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DatabaseFromSQL"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ADLS_JSON_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "JSON",
+					"rejectedDataLinkedService": {
+						"referenceName": "ADLS_JSON_LS",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "AssignRow"
+				},
+				{
+					"name": "DeletDuplicate"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CID as integer,",
+				"          Name as string,",
+				"          mailid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'dummy',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> DatabaseFromSQL",
+				"DatabaseFromSQL window(over(Name),",
+				"     asc(Name, true),",
+				"     Rn = rowNumber()) ~> AssignRow",
+				"AssignRow alterRow(deleteIf(greater(Rn,1))) ~> DeletDuplicate",
+				"DeletDuplicate sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'json',",
+				"     fileSystem: 'landing',",
+				"     folderPath: 'Customer',",
+				"     partitionFileNames:['Duplicate_deleted'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> JSON"
+			]
+		}
+	}
+}

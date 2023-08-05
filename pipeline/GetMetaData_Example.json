@@ -1,0 +1,43 @@
+{
+	"name": "GetMetaData_Example",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetMetaData_Example",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "CSV_DS",
+						"type": "DatasetReference",
+						"parameters": {
+							"FilePath": "CSV"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-07-11T02:45:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

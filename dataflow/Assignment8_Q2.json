@@ -1,0 +1,180 @@
+{
+	"name": "Assignment8_Q2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ADLS_CSV_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Customersource"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ADLS_CSV_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CustomerSourceAddr"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Adress"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ADLS_JSON_LS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkToJSON"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinktoSQL"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "joinaddress"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as short,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'landing',",
+				"     fileName: 'customer',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> Customersource",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          AddressID as integer,",
+				"          AddressType as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'landing',",
+				"     fileName: 'CustomerAddress',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> CustomerSourceAddr",
+				"source(output(",
+				"          AddressID as integer,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          StateProvince as string,",
+				"          CountryRegion as string,",
+				"          PostalCode as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'Address',",
+				"     isolationLevel: 'READ_COMMITTED') ~> Adress",
+				"Customersource, CustomerSourceAddr join(Customersource@CustomerID == CustomerSourceAddr@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"joinaddress select(mapColumn(",
+				"          CustomerID = Customersource@CustomerID,",
+				"          FirstName,",
+				"          AddressID = CustomerSourceAddr@AddressID,",
+				"          EmailAddress,",
+				"          Phone,",
+				"          AddressType,",
+				"          City,",
+				"          CountryRegion",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"join1, Adress join(CustomerSourceAddr@AddressID == Adress@AddressID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinaddress",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AddressID as short,",
+				"          AddressType as string,",
+				"          CustomerID as short,",
+				"          EmailAddress as string,",
+				"          FirstName as string,",
+				"          Phone as string",
+				"     ),",
+				"     format: 'json',",
+				"     fileSystem: 'landing',",
+				"     folderPath: 'Customer',",
+				"     partitionFileNames:['Customeraddr_JSON_dataflow'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> SinkToJSON",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'Test',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     recreate: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> SinktoSQL"
+			]
+		}
+	}
+}
